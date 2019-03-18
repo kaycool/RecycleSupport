@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
  * @author kai.w
  * @des  $des
  */
-class GirdCenterManager(val context: Context, val spanCount: Int = 0) : RecyclerView.LayoutManager() {
+class GridCenterManager(val context: Context, val spanCount: Int = 0) : RecyclerView.LayoutManager() {
     private val mItemRects: SparseArray<Rect> = SparseArray()//key 是View的position，保存View的bounds 和 显示标志，
     private var mFirstVisiRow: Int = 0//屏幕可见的第一个View的Position
     private var mLastVisiRow: Int = 0//屏幕可见的最后一个View的Position

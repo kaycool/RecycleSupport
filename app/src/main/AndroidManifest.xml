@@ -21,6 +21,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+
+        <activity android:name=".GridCenterActivity"
+                  android:screenOrientation="portrait"/>
+
+        <activity android:name=".FlowActivity"
+                  android:screenOrientation="portrait"/>
+
+
     </application>
 
 </manifest>
