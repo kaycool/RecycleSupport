@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kai.wang.recycle.support.lib.GridCenterManager
 import kotlinx.android.synthetic.main.activity_recycle.*
@@ -27,6 +28,7 @@ class GridCenterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_recycle)
 
         recycleView.layoutManager = GridCenterManager(this, 3)
+//        recycleView.layoutManager = GridLayoutManager(this, 3)
         recycleView.adapter = FlowLayoutAdapter(this@GridCenterActivity)
         recycleView.addItemDecoration(object : RecyclerView.ItemDecoration() {
             override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {

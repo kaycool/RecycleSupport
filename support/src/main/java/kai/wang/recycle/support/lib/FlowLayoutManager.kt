@@ -9,9 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 
 /**
  * 介绍：流式布局LayoutManager
- * 作者：zhangxutong
- * 邮箱：zhangxutong@imcoming.com
- * 时间： 2016/10/26.
+ * 作者：kai.wang
+ * 邮箱：15156276550@163.com
+ * 时间： 2019.03.22
  */
 
 class FlowLayoutManager : RecyclerView.LayoutManager() {
@@ -36,7 +36,6 @@ class FlowLayoutManager : RecyclerView.LayoutManager() {
     }*/
 
     init {
-        isAutoMeasureEnabled = true
         mItemRects = SparseArray()
     }
 
@@ -62,8 +61,6 @@ class FlowLayoutManager : RecyclerView.LayoutManager() {
 
         //初始化时调用 填充childView
         fill(recycler, state)
-
-
     }
 
     /**

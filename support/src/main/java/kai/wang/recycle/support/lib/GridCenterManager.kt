@@ -15,50 +15,10 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
     private var mFirstVisiRow: Int = 0//屏幕可见的第一个View的Position
     private var mLastVisiRow: Int = 0//屏幕可见的最后一个View的Position
     private var mParentWidth = 0
+    private val mDectorRect = Rect()
 
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
         return RecyclerView.LayoutParams(RecyclerView.LayoutParams.WRAP_CONTENT, RecyclerView.LayoutParams.WRAP_CONTENT)
-    }
-
-
-    override fun onMeasure(
-        recycler: RecyclerView.Recycler,
-        state: RecyclerView.State,
-        widthSpec: Int,
-        heightSpec: Int
-    ) {
-        super.onMeasure(recycler, state, widthSpec, heightSpec)
-
-        if (itemCount <= 0 || state.isPreLayout) {
-            return
-        }
-        mParentWidth = View.MeasureSpec.getSize(widthSpec)
-        val parentHeight = View.MeasureSpec.getSize(heightSpec)
-        val parentMode = View.MeasureSpec.getMode(heightSpec)
-        var measureHeight = 0
-        var lineHeight = 0
-
-        for (i in 0 until itemCount) {
-            val child = recycler.getViewForPosition(i)
-            val spanIndex = i % spanCount + 1
-            //测量子view阶段
-            (child.layoutParams  as? RecyclerView.LayoutParams)?.also {
-                val parentUseWidth = (mParentWidth / spanCount) * (spanCount - 1)
-                measureChildrenWithMaxWidth(child, parentUseWidth, 0)
-                lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
-                if (spanIndex == spanCount || i == itemCount - 1) {//换行
-                    measureHeight += lineHeight
-                    lineHeight = 0
-                }
-            }
-        }
-        setMeasuredDimension(
-            mParentWidth, when (parentMode) {
-                View.MeasureSpec.EXACTLY -> parentHeight
-                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED -> measureHeight
-                else -> 0
-            }
-        )
     }
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
@@ -154,14 +114,12 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                 for (i in minPos..mLastVisiPos) {
                     val child = recycler!!.getViewForPosition(i)
                     addView(child)
-                    val spanIndex = i % spanCount + 1
+                    calculateItemDecorationsForChild(child, mDectorRect)
                     //测量子view阶段
-                    val horizontalInsets = 0
-//                    val verticalInsets = context.dimen(R.dimen.dimen_20)
-                    (child.layoutParams  as? RecyclerView.LayoutParams)?.also {
-                        val parentUseWidth = (mParentWidth / spanCount) * (spanCount - 1)
-                        measureChildrenWithMaxWidth(child, parentUseWidth, 0)
-                    }
+                    measureChildWithMargins(child, 0, 0)
+
+                    val spanIndex = i % spanCount + 1
+
 
                     if (spanIndex == 1) {//换行
                         topOffset += lineHeight
@@ -190,7 +148,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                         topOffset + getDecoratedMeasurementVertical(child)
                     )
                     mItemRects.put(i, rect)
-                    leftOffset += getDecoratedMeasurementHorizontal(child) + horizontalInsets
+                    leftOffset += getDecoratedMeasurementHorizontal(child)
                     lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
                 }
 
@@ -198,9 +156,28 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             } else {
 
             }
+
         }
 
         return dy
+    }
+
+
+    private fun measureChild(view: View) {
+        val maxSize = width.toFloat() / spanCount
+        val lp = view.layoutParams as RecyclerView.LayoutParams
+        val verticalInsets = mDectorRect.top + mDectorRect.bottom + lp.topMargin + lp.bottomMargin
+        val horizontalInsets = mDectorRect.left + mDectorRect.right + lp.leftMargin + lp.rightMargin
+        val wSpec = View.MeasureSpec.makeMeasureSpec(
+            maxSize.toInt() - horizontalInsets,
+            View.MeasureSpec.EXACTLY
+        )
+//        val hSpec= RecyclerView.LayoutManager.getChildMeasureSpec(
+//            totalSpaceInOther, View.MeasureSpec.EXACTLY,
+//            verticalInsets, lp.height, false
+//        )
+//
+//        view.measure(wSpec,hSpec)
     }
 
 
