@@ -163,21 +163,24 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
     }
 
 
-    private fun measureChild(view: View) {
-        val maxSize = width.toFloat() / spanCount
+    private fun measureChild(view: View, maxHeight: Int) {
+        val spanLimitSize = width.toFloat() / spanCount
         val lp = view.layoutParams as RecyclerView.LayoutParams
         val verticalInsets = mDectorRect.top + mDectorRect.bottom + lp.topMargin + lp.bottomMargin
         val horizontalInsets = mDectorRect.left + mDectorRect.right + lp.leftMargin + lp.rightMargin
         val wSpec = View.MeasureSpec.makeMeasureSpec(
-            maxSize.toInt() - horizontalInsets,
+            spanLimitSize.toInt() - horizontalInsets,
             View.MeasureSpec.EXACTLY
         )
-//        val hSpec= RecyclerView.LayoutManager.getChildMeasureSpec(
-//            totalSpaceInOther, View.MeasureSpec.EXACTLY,
-//            verticalInsets, lp.height, false
-//        )
-//
-//        view.measure(wSpec,hSpec)
+        val hSpec = RecyclerView.LayoutManager.getChildMeasureSpec(
+            maxHeight, View.MeasureSpec.EXACTLY,
+            verticalInsets, lp.height, false
+        )
+
+
+
+
+        view.measure(wSpec, hSpec)
     }
 
 
