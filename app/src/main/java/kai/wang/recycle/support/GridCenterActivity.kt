@@ -77,7 +77,7 @@ class GridCenterActivity : AppCompatActivity() {
             }
 
             override fun getItemCount(): Int {
-                return 50
+                return 100
             }
 
             override fun onBindViewHolder(holder: FlowLayoutHolder, position: Int) {

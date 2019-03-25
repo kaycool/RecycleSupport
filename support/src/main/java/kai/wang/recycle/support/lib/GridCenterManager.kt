@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
  * @des  $des
  */
 class GridCenterManager(val context: Context, val spanCount: Int = 0) : RecyclerView.LayoutManager() {
+    private var mVerticalOffset: Int = 0//竖直偏移量 每次换行时，要根据这个offset判断
     private val mItemRects: SparseArray<Rect> = SparseArray()//key 是View的position，保存View的bounds 和 显示标志，
     private var mFirstVisiRow: Int = 0//屏幕可见的第一个View的Position
     private var mLastVisiRow: Int = 0//屏幕可见的最后一个View的Position
@@ -69,7 +70,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         //回收越界子view
         with(childCount > 0) {
             if (this) {
-                for (i in childCount - 1 downTo 0 step spanCount) {
+                for (i in childCount - 1 downTo spanCount step spanCount) {
                     val child = getChildAt(i)
 
                     if (dy > 0) {//需要回收当前屏幕，上越界的View
@@ -116,18 +117,17 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     addView(child)
                     calculateItemDecorationsForChild(child, mDectorRect)
                     //测量子view阶段
-                    measureChildWithMargins(child, 0, 0)
+                    measureChild(child)
 
                     val spanIndex = i % spanCount + 1
-
-
                     if (spanIndex == 1) {//换行
                         topOffset += lineHeight
                         leftOffset = 0
                         lineHeight = 0
 
                         if (mLastVisiPos - i < spanCount) {//最后一行居中显示
-                            val spaceWidth = (mParentWidth / spanCount) * (spanCount - (mLastVisiPos - i) - 1)
+                            val spaceWidth =
+                                ((width - paddingLeft - paddingRight) / spanCount) * (spanCount - (mLastVisiPos - i) - 1)
                             leftOffset += spaceWidth / 2
                         }
                     }
@@ -151,20 +151,72 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     leftOffset += getDecoratedMeasurementHorizontal(child)
                     lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
                 }
-
-
             } else {
+                var maxPos = itemCount - 1
+                val mFirstVisiPos = 0
+                if (childCount > 0) {
+                    val firstView = getChildAt(0)
+                    maxPos = getPosition(firstView!!) - 1
+                }
 
+                for (i in maxPos downTo mFirstVisiPos) {
+                    val rect = mItemRects.get(i)
+
+                    val child = recycler!!.getViewForPosition(i)
+                    addView(child, 0)//将View添加至RecyclerView中，childIndex为1，但是View的位置还是由layout的位置决定
+                    measureChild(child)
+                    layoutDecoratedWithMargins(
+                        child,
+                        rect.left,
+                        rect.top,
+                        rect.right,
+                        rect.bottom
+                    )
+                }
             }
-
         }
-
         return dy
     }
 
 
-    private fun measureChild(view: View, maxHeight: Int) {
-        val spanLimitSize = width.toFloat() / spanCount
+    override fun canScrollVertically(): Boolean {
+        return true
+    }
+
+    override fun scrollVerticallyBy(dy: Int, recycler: RecyclerView.Recycler?, state: RecyclerView.State?): Int {
+        //位移0、没有子View 当然不移动
+        if (dy == 0 || childCount == 0) {
+            return 0
+        }
+
+        var realOffset = dy//实际滑动的距离， 可能会在边界处被修复
+        //边界修复代码
+        if (mVerticalOffset + realOffset < 0) {//上边界
+            realOffset = -mVerticalOffset
+        } else if (realOffset > 0) {//下边界
+            //利用最后一个子View比较修正
+            val lastChild = getChildAt(childCount - 1)
+            if (getPosition(lastChild!!) == itemCount - 1) {
+                val gap = height - paddingBottom - getDecoratedBottom(lastChild)
+                realOffset = when {
+                    gap > 0 -> -gap
+                    gap == 0 -> 0
+                    else -> Math.min(realOffset, -gap)
+                }
+            }
+        }
+
+        realOffset = fill(recycler, state, realOffset)//先填充，再位移。
+
+        mVerticalOffset += realOffset//累加实际滑动距离
+
+        offsetChildrenVertical(-realOffset)//滑动
+
+        return realOffset
+    }
+
+    private fun measureChild(view: View) {
+        val spanLimitSize = (width.toFloat() - paddingLeft - paddingRight) / spanCount
         val lp = view.layoutParams as RecyclerView.LayoutParams
         val verticalInsets = mDectorRect.top + mDectorRect.bottom + lp.topMargin + lp.bottomMargin
         val horizontalInsets = mDectorRect.left + mDectorRect.right + lp.leftMargin + lp.rightMargin
@@ -173,36 +225,11 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             View.MeasureSpec.EXACTLY
         )
         val hSpec = RecyclerView.LayoutManager.getChildMeasureSpec(
-            maxHeight, View.MeasureSpec.EXACTLY,
+            height, View.MeasureSpec.AT_MOST,
             verticalInsets, lp.height, false
         )
-
-
-
-
         view.measure(wSpec, hSpec)
     }
-
-
-    private fun measureChildrenWithMaxWidth(child: View, parentUseWidth: Int, parentUseHeight: Int) {
-        var widthUsed = parentUseWidth
-        var heightUsed = parentUseHeight
-        (child.layoutParams  as? RecyclerView.LayoutParams)?.also {
-            val horizontalInsets = getDecoratedMeasurementHorizontal(child)
-            val verticalInsets = getDecoratedMeasurementVertical(child)
-
-            widthUsed += horizontalInsets
-            heightUsed += verticalInsets
-
-            val widthSpec = View.MeasureSpec.makeMeasureSpec(
-                mParentWidth - parentUseWidth - paddingLeft - paddingRight - it.leftMargin - it.rightMargin,
-                View.MeasureSpec.EXACTLY
-            )
-            val heightSpec = View.MeasureSpec.makeMeasureSpec(it.height, View.MeasureSpec.AT_MOST)
-            child.measure(widthSpec, heightSpec)
-        }
-    }
-
 
     /**
      * 获取某个childView在水平方向所占的空间
