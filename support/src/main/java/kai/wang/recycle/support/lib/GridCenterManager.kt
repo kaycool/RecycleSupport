@@ -2,6 +2,7 @@ package kai.wang.recycle.support.lib
 
 import android.content.Context
 import android.graphics.Rect
+import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
@@ -71,6 +72,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         with(childCount > 0) {
             if (this) {
                 for (i in childCount - 1 downTo spanCount step spanCount) {
+                    Log.d("fill","=============$i===================")
                     val child = getChildAt(i)
 
                     if (dy > 0) {//需要回收当前屏幕，上越界的View
