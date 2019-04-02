@@ -72,12 +72,11 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         with(childCount > 0) {
             if (this) {
                 for (i in childCount - 1 downTo spanCount step spanCount) {
-                    Log.d("fill","=============$i===================")
                     val child = getChildAt(i)
 
                     if (dy > 0) {//需要回收当前屏幕，上越界的View
                         if (getDecoratedBottom(child!!) - dy < topOffset) {
-                            for (index in i downTo i - spanCount) {
+                            for (index in i downTo i + 1 - spanCount) {
                                 val removeChild = getChildAt(index)
                                 removeAndRecycleView(removeChild!!, recycler!!)
                             }
@@ -86,7 +85,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                         }
                     } else if (dy < 0) {//回收当前屏幕，下越界的View
                         if (getDecoratedTop(child!!) - dy > height - paddingBottom) {
-                            for (index in i downTo i - spanCount) {
+                            for (index in i downTo i + 1 - spanCount) {
                                 val removeChild = getChildAt(index)
                                 removeAndRecycleView(removeChild!!, recycler!!)
                             }
@@ -97,6 +96,8 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                 }
             }
         }
+
+        Log.d("fill", "mFirstVisiRow=$mFirstVisiRow")
 
         var leftOffset = paddingLeft
         var lineHeight = 0
@@ -156,6 +157,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             } else {
                 var maxPos = itemCount - 1
                 val mFirstVisiPos = 0
+                mFirstVisiRow=0
                 if (childCount > 0) {
                     val firstView = getChildAt(0)
                     maxPos = getPosition(firstView!!) - 1

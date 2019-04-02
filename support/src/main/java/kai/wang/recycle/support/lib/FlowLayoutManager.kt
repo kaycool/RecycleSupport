@@ -109,6 +109,8 @@ class FlowLayoutManager : RecyclerView.LayoutManager() {
             //detachAndScrapAttachedViews(recycler);
         }
 
+        Log.d("fill", "mFirstVisiPos=$mFirstVisiPos")
+
         var leftOffset = paddingLeft
         var lineMaxHeight = 0
         //布局子View阶段
