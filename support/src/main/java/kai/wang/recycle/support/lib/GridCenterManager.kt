@@ -114,7 +114,8 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     leftOffset = getDecoratedRight(lastView)
                     lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(lastView))
                 }
-
+                Log.d("fill", "minPos=$minPos")
+                Log.d("fill", "mLastVisiPos=$mLastVisiPos")
                 for (i in minPos..mLastVisiPos) {
                     val child = recycler!!.getViewForPosition(i)
                     addView(child)
@@ -157,7 +158,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             } else {
                 var maxPos = itemCount - 1
                 val mFirstVisiPos = 0
-                mFirstVisiRow=0
+                mFirstVisiRow = 0
                 if (childCount > 0) {
                     val firstView = getChildAt(0)
                     maxPos = getPosition(firstView!!) - 1
