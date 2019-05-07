@@ -36,8 +36,11 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
 
         detachAndScrapAttachedViews(recycler)
         mFirstVisiRow = 0
-        mLastVisiRow = itemCount
-
+        mLastVisiRow = itemCount / spanCount + if (itemCount % spanCount > 0) {
+            1
+        } else {
+            0
+        }
         //初始化时调用 填充childView
         fill(recycler, state)
     }
@@ -71,33 +74,26 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         //回收越界子view
         with(childCount > 0) {
             if (this) {
-                for (i in childCount - 1 downTo spanCount step spanCount) {
-                    val child = getChildAt(i)
-
-                    if (dy > 0) {//需要回收当前屏幕，上越界的View
-                        if (getDecoratedBottom(child!!) - dy < topOffset) {
-                            for (index in i downTo i + 1 - spanCount) {
-                                val removeChild = getChildAt(index)
-                                removeAndRecycleView(removeChild!!, recycler!!)
+                for (i in childCount - 1 downTo 0) {
+                    val spanIndex = i % spanCount
+                    getChildAt(i)?.apply {
+                        if (dy > 0) {//需要回收当前屏幕，上越界的View
+                            if (getDecoratedBottom(this) - dy < topOffset) {
+                                removeAndRecycleView(this, recycler!!)
+                                if (spanIndex == 1) mFirstVisiRow++
                             }
-                            mFirstVisiRow++
-                            continue
-                        }
-                    } else if (dy < 0) {//回收当前屏幕，下越界的View
-                        if (getDecoratedTop(child!!) - dy > height - paddingBottom) {
-                            for (index in i downTo i + 1 - spanCount) {
-                                val removeChild = getChildAt(index)
-                                removeAndRecycleView(removeChild!!, recycler!!)
+                        } else if (dy < 0) {//回收当前屏幕，下越界的View
+                            if (getDecoratedTop(this) - dy > height - paddingBottom) {
+                                removeAndRecycleView(this, recycler!!)
+                                if (spanIndex == 1) mLastVisiRow--
                             }
-                            mLastVisiRow--
-                            continue
                         }
                     }
                 }
             }
         }
 
-        Log.d("fill", "mFirstVisiRow=$mFirstVisiRow")
+        Log.d("fill", "mFirstVisiRow=$mFirstVisiRow and mLastVisiRow=$mLastVisiRow")
 
         var leftOffset = paddingLeft
         var lineHeight = 0
@@ -106,7 +102,8 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         with(dy >= 0) {
             if (this) {
                 var minPos = mFirstVisiRow * spanCount
-                val mLastVisiPos = itemCount - 1
+                var mLastVisiPos = itemCount - 1
+                Log.d("fill", "childCount=$childCount")
                 if (childCount > 0) {
                     val lastView = getChildAt(childCount - 1)
                     minPos = getPosition(lastView!!) + 1//从最后一个View+1开始吧
@@ -114,8 +111,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     leftOffset = getDecoratedRight(lastView)
                     lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(lastView))
                 }
-                Log.d("fill", "minPos=$minPos")
-                Log.d("fill", "mLastVisiPos=$mLastVisiPos")
+                Log.d("fill", "minPos=$minPos and mLastVisiPos=$mLastVisiPos")
                 for (i in minPos..mLastVisiPos) {
                     val child = recycler!!.getViewForPosition(i)
                     addView(child)
@@ -136,24 +132,29 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                         }
                     }
 
-                    layoutDecoratedWithMargins(
-                        child,
-                        leftOffset,
-                        topOffset,
-                        leftOffset + getDecoratedMeasurementHorizontal(child),
-                        topOffset + getDecoratedMeasurementVertical(child)
-                    )
+                    if (topOffset - dy > height - paddingBottom) {
+                        removeAndRecycleView(child, recycler)
+                        if (spanIndex == 1) mLastVisiPos = i - 1
+                    } else {
+                        layoutDecoratedWithMargins(
+                            child,
+                            leftOffset,
+                            topOffset,
+                            leftOffset + getDecoratedMeasurementHorizontal(child),
+                            topOffset + getDecoratedMeasurementVertical(child)
+                        )
 
-                    //保存Rect供逆序layout用
-                    val rect = Rect(
-                        leftOffset,
-                        topOffset,
-                        leftOffset + getDecoratedMeasurementHorizontal(child),
-                        topOffset + getDecoratedMeasurementVertical(child)
-                    )
-                    mItemRects.put(i, rect)
-                    leftOffset += getDecoratedMeasurementHorizontal(child)
-                    lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
+                        //保存Rect供逆序layout用
+                        val rect = Rect(
+                            leftOffset,
+                            topOffset,
+                            leftOffset + getDecoratedMeasurementHorizontal(child),
+                            topOffset + getDecoratedMeasurementVertical(child)
+                        )
+                        mItemRects.put(i, rect)
+                        leftOffset += getDecoratedMeasurementHorizontal(child)
+                        lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
+                    }
                 }
             } else {
                 var maxPos = itemCount - 1
