@@ -180,6 +180,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     } else {
                         val child = recycler!!.getViewForPosition(i)
                         addView(child, 0)//将View添加至RecyclerView中，childIndex为1，但是View的位置还是由layout的位置决定
+                        calculateItemDecorationsForChild(child, mDectorRect)
                         measureChild(child)
                         layoutDecoratedWithMargins(
                             child,
