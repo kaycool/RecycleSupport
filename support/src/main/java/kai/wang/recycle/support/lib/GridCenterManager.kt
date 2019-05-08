@@ -83,7 +83,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                                 if (spanIndex == 1) mFirstVisiRow++
                             }
                         } else if (dy < 0) {//回收当前屏幕，下越界的View
-                            if (getDecoratedTop(this) - dy > height - paddingBottom) {
+                            if (getDecoratedTop(this) - dy > this@GridCenterManager.height - this@GridCenterManager.paddingBottom) {
                                 removeAndRecycleView(this, recycler!!)
                                 if (spanIndex == 1) mLastVisiRow--
                             }
@@ -164,6 +164,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                     val firstView = getChildAt(0)
                     maxPos = getPosition(firstView!!) - 1
                 }
+                Log.d("fill", "maxPos=$maxPos and mFirstVisiPos=$mFirstVisiPos and childCount=$childCount")
 
                 for (i in maxPos downTo mFirstVisiPos) {
                     val rect = mItemRects.get(i)
