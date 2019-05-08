@@ -147,13 +147,21 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
                         //保存Rect供逆序layout用
                         val rect = Rect(
                             leftOffset,
-                            topOffset,
+                            topOffset + mVerticalOffset,
                             leftOffset + getDecoratedMeasurementHorizontal(child),
-                            topOffset + getDecoratedMeasurementVertical(child)
+                            topOffset + getDecoratedMeasurementVertical(child) + mVerticalOffset
                         )
                         mItemRects.put(i, rect)
                         leftOffset += getDecoratedMeasurementHorizontal(child)
                         lineHeight = Math.max(lineHeight, getDecoratedMeasurementVertical(child))
+                    }
+                }
+                //添加完后，判断是否已经没有更多的ItemView，并且此时屏幕仍有空白，则需要修正dy
+                val lastChild = getChildAt(childCount - 1)
+                if (getPosition(lastChild!!) == itemCount - 1) {
+                    val gap = height - paddingBottom - getDecoratedBottom(lastChild)
+                    if (gap > 0) {
+                        dy -= gap
                     }
                 }
             } else {
