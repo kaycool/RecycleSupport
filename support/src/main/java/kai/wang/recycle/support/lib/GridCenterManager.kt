@@ -159,7 +159,6 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             } else {
                 var maxPos = itemCount - 1
                 val mFirstVisiPos = 0
-                mFirstVisiRow = 0
                 if (childCount > 0) {
                     val firstView = getChildAt(0)
                     maxPos = getPosition(firstView!!) - 1
@@ -168,17 +167,20 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
 
                 for (i in maxPos downTo mFirstVisiPos) {
                     val rect = mItemRects.get(i)
-
-                    val child = recycler!!.getViewForPosition(i)
-                    addView(child, 0)//将View添加至RecyclerView中，childIndex为1，但是View的位置还是由layout的位置决定
-                    measureChild(child)
-                    layoutDecoratedWithMargins(
-                        child,
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom
-                    )
+                    if (rect.bottom - mVerticalOffset - dy < paddingTop) {
+                        break
+                    } else {
+                        val child = recycler!!.getViewForPosition(i)
+                        addView(child, 0)//将View添加至RecyclerView中，childIndex为1，但是View的位置还是由layout的位置决定
+                        measureChild(child)
+                        layoutDecoratedWithMargins(
+                            child,
+                            rect.left,
+                            rect.top - mVerticalOffset,
+                            rect.right,
+                            rect.bottom - mVerticalOffset
+                        )
+                    }
                 }
             }
         }
