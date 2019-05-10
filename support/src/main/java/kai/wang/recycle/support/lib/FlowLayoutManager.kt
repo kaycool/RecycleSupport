@@ -258,12 +258,10 @@ class FlowLayoutManager : RecyclerView.LayoutManager() {
             val lastChild = getChildAt(childCount - 1)
             if (getPosition(lastChild!!) == itemCount - 1) {
                 val gap = height - paddingBottom - getDecoratedBottom(lastChild)
-                if (gap > 0) {
-                    realOffset = -gap
-                } else if (gap == 0) {
-                    realOffset = 0
-                } else {
-                    realOffset = Math.min(realOffset, -gap)
+                realOffset = when {
+                    gap > 0 -> -gap
+                    gap == 0 -> 0
+                    else -> Math.min(realOffset, -gap)
                 }
             }
         }
@@ -271,9 +269,7 @@ class FlowLayoutManager : RecyclerView.LayoutManager() {
         realOffset = fill(recycler, state, realOffset)//先填充，再位移。
 
         mVerticalOffset += realOffset//累加实际滑动距离
-
         offsetChildrenVertical(-realOffset)//滑动
-
         return realOffset
     }
 

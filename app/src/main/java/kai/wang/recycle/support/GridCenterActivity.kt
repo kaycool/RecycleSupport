@@ -11,8 +11,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kai.wang.recycle.support.GridCenterActivity.Companion.createGradientDrawable
 import kai.wang.recycle.support.lib.GridCenterManager
 import kotlinx.android.synthetic.main.activity_recycle.*
 import java.util.*
@@ -37,6 +37,11 @@ class GridCenterActivity : AppCompatActivity() {
                 outRect.top = 10
             }
         })
+
+        btnNotify.setOnClickListener {
+            recycleView.adapter?.notifyItemChanged(3, Color.BLACK)
+        }
+
     }
 
 
@@ -83,6 +88,16 @@ class GridCenterActivity : AppCompatActivity() {
             override fun onBindViewHolder(holder: FlowLayoutHolder, position: Int) {
                 (holder.itemView as? TextView)?.apply {
                     this.text = texts[Random().nextInt(10)]
+                }
+            }
+
+            override fun onBindViewHolder(holder: FlowLayoutHolder, position: Int, payloads: MutableList<Any>) {
+                super.onBindViewHolder(holder, position, payloads)
+                if (payloads.isNotEmpty()) {
+                    (holder.itemView as? TextView)?.apply {
+                        this.background = context.createGradientDrawable(10f, payloads[0] as Int)
+                    }
+                    return
                 }
             }
 

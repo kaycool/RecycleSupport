@@ -233,6 +233,10 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         return realOffset
     }
 
+    override fun scrollToPosition(position: Int) {
+        super.scrollToPosition(position)
+    }
+
     private fun measureChild(view: View) {
         val spanLimitSize = (width.toFloat() - paddingLeft - paddingRight) / spanCount
         val lp = view.layoutParams as RecyclerView.LayoutParams
@@ -242,7 +246,7 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
             spanLimitSize.toInt() - horizontalInsets,
             View.MeasureSpec.EXACTLY
         )
-        val hSpec = RecyclerView.LayoutManager.getChildMeasureSpec(
+        val hSpec = getChildMeasureSpec(
             height, View.MeasureSpec.AT_MOST,
             verticalInsets, lp.height, false
         )
@@ -270,7 +274,6 @@ class GridCenterManager(val context: Context, val spanCount: Int = 0) : Recycler
         val params = view.layoutParams as RecyclerView.LayoutParams
         return (getDecoratedMeasuredHeight(view) + params.topMargin + params.bottomMargin)
     }
-
 
     fun getSelfSpanCount() = spanCount
 
